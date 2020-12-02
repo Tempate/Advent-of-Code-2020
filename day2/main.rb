@@ -2,32 +2,28 @@ file = File.open("input.txt")
 lines = file.readlines.map(&:chomp)
 
 
-def first_policy(min, max, letter, string)
+def policy1(pos1, pos2, letter, string)
     count = string.count(letter)
-    return count >= min && count <= max
+    return count >= pos1 && count <= pos2
 end
 
 
-def second_policy(min, max, letter, string)
-    first_char = string[min-1] == letter
-    second_char = string[max-1] == letter
-    return (first_char && !second_char) || (second_char && !first_char)
+def policy2(pos1, pos2, letter, string)
+    char1 = string[pos1-1] == letter
+    char2 = string[pos2-1] == letter
+    return (char1 && !char2) || (!char1 && char2)
 end
 
 
 def valid_passwords(lines, policy)
+    pattern = Regexp.compile(/^(?<pos1>\d+)-(?<pos2>\d+) (?<letter>[a-z]{1}): (?<string>[a-z]+)$/)
+    
     valid = 0
 
     lines.each do |line|
-        parts = line.split(' ')
-        
-        margins = parts[0].split('-')
-        min = margins[0].to_i
-        max = margins[1].to_i
+        content = pattern.match(line)
 
-        letter = parts[1][0]
-
-        if method(policy).call(min, max, letter, parts[2])
+        if method(policy).call(content[1].to_i, content[2].to_i, content[3], content[4])
             valid += 1
         end
     end
@@ -36,5 +32,5 @@ def valid_passwords(lines, policy)
 end
 
 
-puts "Part 1: " + valid_passwords(lines, :first_policy).to_s
-puts "Part 2: " + valid_passwords(lines, :second_policy).to_s
+puts "Part 1: " + valid_passwords(lines, :policy1).to_s
+puts "Part 2: " + valid_passwords(lines, :policy2).to_s
