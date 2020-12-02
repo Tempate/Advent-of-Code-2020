@@ -9,9 +9,7 @@ end
 
 
 def policy2(pos1, pos2, letter, string)
-    char1 = string[pos1-1] == letter
-    char2 = string[pos2-1] == letter
-    return (char1 && !char2) || (!char1 && char2)
+    return (string[pos1-1] == letter) ^ (string[pos2-1] == letter)
 end
 
 
