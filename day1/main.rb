@@ -2,28 +2,28 @@ file = File.open("input.txt")
 lines = file.readlines.map(&:chomp).map(&:to_i)
 
 
-def f(list, count, result)
-    if list.length() == 0
+def f(numbers, count, result)
+    if numbers.length() == 0
         return nil
     elsif count == 1
-        first = list[0]
+        first = numbers[0]
 
         if first == result
             return [first]
-        elsif list.length() == 0
+        elsif numbers.length() == 0
             return nil
         else
-            return f(list.drop(1), count, result)
+            return f(numbers.drop(1), count, result)
         end
     end
 
-    first = list[0]
-    list = list.drop(1)
+    first = numbers[0]
+    numbers = numbers.drop(1)
 
-    answer = f(list, count - 1, result - first)
+    answer = f(numbers, count - 1, result - first)
 
     if answer == nil
-        return f(list, count, result)
+        return f(numbers, count, result)
     else
         return answer.push(first)
     end
