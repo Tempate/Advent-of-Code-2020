@@ -31,17 +31,15 @@ def run_code(program)
 end
 
 
-def fix_wrong_opcode(program, opcode1, opcode2)
+def fix_wrong_opcode(program, wrong_opcodes)
     program.each_with_index do |line, index|
         opcode, value = line.split(" ")
 
-        new_program = Marshal.load(Marshal.dump(program))
-
         case opcode
-        when opcode1
-            new_program[index] = opcode2 + " " + value
-        when opcode2
-            new_program[index] = opcode1 + " " + value
+        when wrong_opcodes[0]
+            new_program = program_copy_changing_line(program, index, wrong_opcodes[1], value)
+        when wrong_opcodes[1]
+            new_program = program_copy_changing_line(program, index, wrong_opcodes[0], value)
         else
             next
         end
@@ -57,5 +55,12 @@ def fix_wrong_opcode(program, opcode1, opcode2)
 end
 
 
+def program_copy_changing_line(program, index, opcode, value)
+    new_program = Marshal.load(Marshal.dump(program))
+    new_program[index] = opcode + " " + value
+    return new_program
+end
+
+
 puts "Part 1: " + run_code($program)[1].to_s
-puts "Part 2: " + fix_wrong_opcode($program, "nop", "jmp").to_s
+puts "Part 2: " + fix_wrong_opcode($program, ["nop", "jmp"]).to_s
