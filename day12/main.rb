@@ -6,39 +6,23 @@ $DIRECTIONS = ["N", "E", "S", "W"]
 
 
 def move_ship(direction, amount)
-    if direction == "F"
-        direction = $DIRECTIONS[$ship[:dir]]
-    end
-
     case direction
-    when "N"
-        $ship[:lat] += amount
-    when "E"
-        $ship[:lon] += amount
-    when "S"
-        $ship[:lat] -= amount
-    when "W"
-        $ship[:lon] -= amount
     when "R"
         $ship[:dir] += amount / 90
         $ship[:dir] %= 4
     when "L"
         $ship[:dir] -= amount / 90
         $ship[:dir] %= 4
+    when "F"
+        move($ship, $DIRECTIONS[$ship[:dir]], amount)
+    else
+        move($ship, direction, amount)
     end
 end
 
 
 def move_ship_and_waypoint(direction, amount)
     case direction
-    when "N"
-        $waypoint[:lat] += amount
-    when "E"
-        $waypoint[:lon] += amount
-    when "S"
-        $waypoint[:lat] -= amount
-    when "W"
-        $waypoint[:lon] -= amount
     when "R"
         $waypoint = rotate($waypoint, amount)
     when "L"
@@ -46,6 +30,22 @@ def move_ship_and_waypoint(direction, amount)
     when "F"
         $ship[:lat] += amount * $waypoint[:lat]
         $ship[:lon] += amount * $waypoint[:lon]
+    else
+        move($waypoint, direction, amount)
+    end
+end
+
+
+def move(position, direction, amount)
+    case direction
+    when "N"
+        position[:lat] += amount
+    when "E"
+        position[:lon] += amount
+    when "S"
+        position[:lat] -= amount
+    when "W"
+        position[:lon] -= amount
     end
 end
 
