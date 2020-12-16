@@ -7,11 +7,11 @@ RULE_PATTERN = Regexp.compile(/^(?<name>(\w|\s)+): (?<min1>\d+)-(?<max1>\d+) or 
 
 def parse(input)
     rules = input[0].split("\n").map{ |rule| RULE_PATTERN.match(rule)}.map{ |rule| 
-        [rule[:name], [ 
+        [rule[:name], [
             (rule[:min1].to_i..rule[:max1].to_i),
             (rule[:min2].to_i..rule[:max2].to_i)
         ]]
-        }.to_h
+    }.to_h
 
     ticket = input[1].split("\n")[1].split(",").map(&:to_i)
 
@@ -19,52 +19,44 @@ def parse(input)
         ticket.split(",").map(&:to_i)
     }
 
-    return rules, ticket, tickets
+    [rules, ticket, tickets]
 end
 
 
 def calculate_ticket_scanning_error_rate(rules, tickets)
-    return tickets.sum{ |ticket| is_ticket_valid(rules, ticket)[1] }
+    tickets.sum{ |ticket| is_ticket_valid(rules, ticket)[1] }
 end
 
 
 def find_index_of_rules(rules, tickets)
-    valid_tickets = tickets.map{ |ticket| 
-        ticket if is_ticket_valid(rules, ticket)[0] 
-    }.compact
+    valid_tickets = tickets.select{ |ticket| is_ticket_valid(rules, ticket)[0] }
 
-    # Get all the valid rules for every index
+    # Get the valid rules for every index
     valid_rules_for_index = tickets[0].map.with_index do |field, index|
-        rules.map{ |name, ranges| 
-            name if is_rule_valid(valid_tickets, ranges, index) 
-        }.compact
+        rules.select{ |_, ranges| is_rule_valid(valid_tickets, ranges, index) }.keys
     end
 
-    simplify_rules(valid_rules_for_index)
-end
+    # Get the forced position of every rule
+    
+    unique_rules_for_index = Array.new(valid_rules_for_index.length(), 0)
 
-
-def simplify_rules(rules)
-    # Gets the forced position of every rule
-    new_rules = Array.new(rules.length(), 0)
-
-    while new_rules.include? 0
+    while unique_rules_for_index.include? 0
 
         # Find the rules that can only be in one place
-        fixed_rules = rules.map.with_index { |rule, index|
+        fixed_rules = valid_rules_for_index.map.with_index { |rule, index|
             [rule[0], index] if rule.length() == 1
         }.compact.to_h
 
         # Delete fixed rules from the original rules
-        rules.map!{ |rule| 
-            rule.delete_if{ |rule_| fixed_rules.keys.include? rule_ }
-        }
+        valid_rules_for_index.map!{ |rule| rule.delete_if{ |rule_| 
+            fixed_rules.keys.include? rule_ 
+        }}
 
         # Save the fixed rules
-        fixed_rules.each { |rule, index| new_rules[index] = rule }
+        fixed_rules.each { |rule, index| unique_rules_for_index[index] = rule }
     end
 
-    new_rules
+    unique_rules_for_index
 end
 
 
@@ -81,11 +73,9 @@ end
 
 
 def is_ticket_valid(rules, ticket)
-    ticket.each { |field|
-        return false, field unless is_field_valid(rules, field)
-    }
+    invalid_field = ticket.find{ |field| !is_field_valid(rules, field) }
 
-    return true, 0
+    (invalid_field) ? [false, invalid_field] : [true, 0]
 end
 
 
