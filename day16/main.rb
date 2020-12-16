@@ -7,9 +7,9 @@ RULE_PATTERN = Regexp.compile(/^(?<name>(\w|\s)+): (?<min1>\d+)-(?<max1>\d+) or 
 
 def parse(input)
     rules = input[0].split("\n").map{ |rule| RULE_PATTERN.match(rule)}.map{ |rule| 
-        [rule[:name], [
-            {:min => rule[:min1].to_i, :max => rule[:max1].to_i},
-            {:min => rule[:min2].to_i, :max => rule[:max2].to_i}
+        [rule[:name], [ 
+            (rule[:min1].to_i..rule[:max1].to_i),
+            (rule[:min2].to_i..rule[:max2].to_i)
         ]]
         }.to_h
 
@@ -24,27 +24,23 @@ end
 
 
 def calculate_ticket_scanning_error_rate(rules, tickets)
-    error_rate = 0
-
-    tickets.each do |ticket|
-        is_valid, invalid_field = is_ticket_valid(rules, ticket)
-
-        error_rate += invalid_field unless is_valid
-    end
-
-    return error_rate
+    return tickets.sum{ |ticket| is_ticket_valid(rules, ticket)[1] }
 end
 
 
 def find_index_of_rules(rules, tickets)
-    valid_tickets = tickets.map{ |ticket| ticket if is_ticket_valid(rules, ticket)[0] }.compact
+    valid_tickets = tickets.map{ |ticket| 
+        ticket if is_ticket_valid(rules, ticket)[0] 
+    }.compact
 
     # Get all the valid rules for every index
     valid_rules_for_index = tickets[0].map.with_index do |field, index|
-        rules.map{ |name, ranges| name if is_rule_valid(valid_tickets, ranges, index) }.compact
+        rules.map{ |name, ranges| 
+            name if is_rule_valid(valid_tickets, ranges, index) 
+        }.compact
     end
 
-    return simplify_rules(valid_rules_for_index)
+    simplify_rules(valid_rules_for_index)
 end
 
 
@@ -68,23 +64,19 @@ def simplify_rules(rules)
         fixed_rules.each { |rule, index| new_rules[index] = rule }
     end
 
-    return new_rules
+    new_rules
 end
 
 
 def product_of_departures(indexed_rules, ticket)
-    departure_indexes = indexed_rules.map.with_index{ |name, index| index if name.include? "departure" }.compact
-
-    return departure_indexes.map { |index| ticket[index] }.inject(:*)
+    return indexed_rules.map.with_index{ |name, index| 
+        ticket[index] if name.include? "departure" 
+    }.compact.inject(:*)
 end
 
 
 def is_rule_valid(tickets, ranges, label)
-    tickets.each { |ticket|
-        return false unless field_in_ranges(ticket[label], ranges)
-    }
-
-    return true
+    tickets.all? { |ticket| field_in_ranges(ticket[label], ranges) }
 end
 
 
@@ -98,20 +90,12 @@ end
 
 
 def is_field_valid(rules, field)
-    rules.each { |name, ranges|
-        return true if field_in_ranges(field, ranges)
-    }
-
-    return false
+    rules.any? { |name, ranges| field_in_ranges(field, ranges) }
 end
 
 
 def field_in_ranges(field, ranges)
-    ranges.each { |range|
-        return true if (range[:min] <= field) && (field <= range[:max])
-    }
-
-    return false
+    ranges.any? { |range| range.cover? field }
 end
 
 
