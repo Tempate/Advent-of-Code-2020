@@ -1,5 +1,3 @@
-gem "solid_assert"
-
 file = File.open("input.txt")
 $space = [file.readlines.map(&:chomp).map(&:chars)]
 
@@ -25,11 +23,11 @@ def find_neighbors(space, coords)
         (min..max).to_a
     }
 
-    # Get the values of all its neighbors
+    # Get the coordinates for its neighbors
     # WARNING: It may not count some inactive squares
-    ranges[0].product(*ranges[1..-1]).map{ |coords_| 
-        get_subspace(space, coords_) unless coords == coords_
-    }.compact
+    neighbors = ranges[0].product(*ranges[1..-1]).select{ |coords_| coords != coords_ }
+
+    neighbors.map{ |coords_| get_subspace(space, coords_) }
 end
 
 
@@ -37,7 +35,11 @@ def run_automaton(space, iterations, dimensions)
     space = Marshal.load(Marshal.dump(space))
 
     iterations.times do
-        space = update(expand(space), dimensions)
+        # Expand the space so that edge-nodes can activate
+        space = expand(space)
+
+        # Run the rules for every activatable cell in the space
+        space = update(space, dimensions)
     end
 
     space
@@ -47,10 +49,12 @@ end
 def update(space, dimensions, coordinates = [])
     subspace = get_subspace(space, coordinates)
     
+    # The subspace is a point. Update its state!
     if coordinates.length() == dimensions
         return get_state(subspace, find_neighbors(space, coordinates).tally[ACTIVE])
     end
     
+    # The subspace is not a point. Update all of its subspaces
     subspace.map.with_index{ |subspace, coordinate|
         update(space, dimensions, coordinates + [coordinate])
     }
@@ -64,9 +68,10 @@ def expand(space)
 
     space.map!{ |subspace| expand(subspace) }
 
-    blank = inactive(space[0])
+    inactive_subspace = inactive(space[0])
 
-    space.unshift(blank).push(blank)
+    # Add two inactive subspaces at the top and bottom of the space
+    space.unshift(inactive_subspace).push(inactive_subspace)
 end
 
 
