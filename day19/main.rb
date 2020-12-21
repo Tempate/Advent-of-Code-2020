@@ -6,7 +6,7 @@ rules, messages = file.read.split("\n\n").map{ |part| part.split("\n") }
 
 
 def parse(rules)
-    new_rules = Array.new(rules.length())
+    new_rules = Array.new(rules.length)
 
     rules.each do |rule|
         id, contents = rule.split(": ")
@@ -25,7 +25,7 @@ end
 
 
 def can_be_simplified(rules)
-    rules.any? { |rule| rule.can_be_simplified() if rule.is_a? Chain }
+    rules.any? { |rule| rule.can_be_simplified if rule.is_a? Chain }
 end
 
 
@@ -50,39 +50,25 @@ end
 
 
 def is_message_valid(message, rules)
-    puts message
-    puts rules.to_s
+    return message if rules.length == 0
+    return false if message.length == 0
 
-    if rules.length() == 0
-        return message
-    end
-
-    rule = rules.shift()
-
-    case rule
+    case rules
     when String
-        if rule == message[0]
-            return is_message_valid(message[1..], rules)
-        end
+        return message[1..] if rules == message[0]
     when OrChain
-        rule.rules.each{ |subrule|
-            submessage = is_message_valid(message, subrule)
-
-            if submessage
-                return is_message_valid(submessage, rules)
-            end
+        rules.get_rules.each{ |subrules|
+            submessage = is_message_valid(message, subrules)
+            return submessage if submessage
         }
     when Chain
-        rule.rules.each{ |subrule|
-            message = is_message_valid(message, subrule)
-            
+        rules.get_rules.each{ |subrules|
+            message = is_message_valid(message, subrules)
             return false unless message
         }
 
         return message
     end
-
-    false
 end
 
 rules = simplify(parse(rules))
