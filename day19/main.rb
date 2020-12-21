@@ -14,9 +14,9 @@ def parse(rules)
         if contents.include? "\""
             new_rules[id.to_i] = contents[1]
         elsif contents.include? "|"
-            new_rules[id.to_i] = OrChain(contents)
+            new_rules[id.to_i] = OrChain.new(contents)
         else
-            new_rules[id.to_i] = Chain(contents)
+            new_rules[id.to_i] = Chain.new(contents)
         end
     end
 
@@ -25,7 +25,7 @@ end
 
 
 def can_be_simplified(rules)
-    rules.any? { |key, rule| rule.can_be_simplified() }
+    rules.any? { |rule| rule.can_be_simplified() if rule.is_a? Chain }
 end
 
 
@@ -33,7 +33,7 @@ def simplify(rules)
 
     while can_be_simplified(rules)
         rules.each{ |rule|
-            rule.simplify() if rule.can_be_simplified()
+            rule.simplify(rules) if rule.is_a? Chain
         }
     end
 
@@ -43,32 +43,37 @@ end
 
 def messages_valid_for_rule(messages, rule)
     messages.select{ |message|
-        msg = is_message_valid(message, rule);
+        msg = is_message_valid(message, Marshal.load(Marshal.dump(rule)));
         msg && msg.length == 0
     }.length
 end
 
 
-def is_message_valid(message, rule)
-    if rule.length() == 0
+def is_message_valid(message, rules)
+    puts message
+    puts rules.to_s
+
+    if rules.length() == 0
         return message
     end
 
-    case rule[0]
+    rule = rules.shift()
+
+    case rule
     when String
-        if message[0] == rule[0]
-            return is_message_valid(message[1..], rule[1..])
+        if rule == message[0]
+            return is_message_valid(message[1..], rules)
         end
     when OrChain
-        rule[0].rules.each{ |subrule|
+        rule.rules.each{ |subrule|
             submessage = is_message_valid(message, subrule)
 
             if submessage
-                return is_message_valid(submessage, rule[1..])
+                return is_message_valid(submessage, rules)
             end
         }
     when Chain
-        rule[0].rules.each{ |subrule|
+        rule.rules.each{ |subrule|
             message = is_message_valid(message, subrule)
             
             return false unless message
@@ -79,7 +84,6 @@ def is_message_valid(message, rule)
 
     false
 end
-
 
 rules = simplify(parse(rules))
 

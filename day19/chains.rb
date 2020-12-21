@@ -5,6 +5,14 @@ class Chain
         @rules = str.split().map(&:to_i)
     end
 
+    def shift()
+        @rules.shift
+    end
+
+    def length()
+        @rules.length
+    end
+
     def can_be_simplified()
         @rules.any? { |rule|
             case rule
@@ -19,20 +27,30 @@ class Chain
     end
 
     def simplify(rules)
-        @rules.map!{ |rule|
-            case rule
-            when Integer
-                rules[rule]
-            when Chain
-                rule.simplify(rules)
-            end
-        }
+        if self.can_be_simplified()
+            @rules.map!{ |rule|
+                case rule
+                when Integer
+                    rules[rule]
+                when Chain
+                    rule.simplify(rules)
+                end
+            }
+        end
+    end
+
+    def to_s()
+        "(" + @rules.map{ |rule| rule.to_s }.join(", ") + ")"
     end
 end
 
 
 class OrChain < Chain
     def initialize(str)
-        @rules = str.split(" | ").map{ |substr| Chain(substr) }
+        @rules = str.split(" | ").map{ |substr| Chain.new(substr) }
+    end
+
+    def to_s()
+        "[" + @rules.map{ |rule| rule.to_s }.join(", ") + "]"
     end
 end
