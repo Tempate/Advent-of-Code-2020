@@ -7,13 +7,7 @@ PREAMBLE_SIZE = 25
 
 # A number is valid if it's the sum of two different numbers from the list
 def is_valid(list, number)
-    list.each do |n|
-        if n < number && list.include?(number - n)
-            return true
-        end
-    end
-
-    return false
+    list.any? { |n| n < number && list.include?(number - n) }
 end
 
 
@@ -21,9 +15,7 @@ def find_first_invalid_number()
     $numbers[PREAMBLE_SIZE..-1].each_with_index do |number, index|
         previous_numbers = $numbers[index..(index + PREAMBLE_SIZE - 1)]
 
-        unless is_valid(previous_numbers, number)
-            return number
-        end
+        return number unless is_valid(previous_numbers, number)
     end
 
     return false
@@ -42,9 +34,7 @@ def find_contiguous_set_that_adds_to_number(number)
             contiguous_set.push($numbers[index])
         end
 
-        if sum == number
-            return contiguous_set
-        end
+        return contiguous_set if sum == number
     end
 
     return false

@@ -58,8 +58,8 @@ end
 
 def waters_roughness(views)
     views.each{ |view|
-        n = count_sea_monsters(view)
-        return count(view, "#") - 15 * n if n > 0
+        monsters = count_sea_monsters(view)
+        return count(view, "#") - 15 * monsters if monsters > 0
     }
 
     return 0

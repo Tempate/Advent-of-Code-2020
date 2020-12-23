@@ -7,7 +7,7 @@ def run_code(program)
     instruction_register = 0
     history = []
 
-    while !(history.include?(instruction_register)) do
+    until history.include? instruction_register do
         op_code, value = program[instruction_register].split(" ")
 
         history.push(instruction_register)

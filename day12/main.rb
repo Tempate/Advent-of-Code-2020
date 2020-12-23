@@ -83,7 +83,7 @@ end
 
 
 def manhattan_distance(position)
-    return position[:lon].abs + position[:lat].abs
+    position[:lon].abs + position[:lat].abs
 end
 
 

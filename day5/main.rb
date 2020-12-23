@@ -16,6 +16,7 @@ def string_to_binary(string, char_for_one)
     return binary_number
 end
 
+
 def seat_id(boarding_pass)
     row = string_to_binary(boarding_pass[0..6], 'B')
     col = string_to_binary(boarding_pass[7..-1], 'R')

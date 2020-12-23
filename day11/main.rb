@@ -13,7 +13,9 @@ $dirs = [[0, 1], [0, -1], [1, 0], [1, 1], [1, -1], [-1, 0], [-1, 1], [-1, -1]]
 
 
 def find_neighbors(seats, x, y)
-    return $dirs.map{|dir_x, dir_y| seats[y + dir_y][x + dir_x] if (x + dir_x).between?(0, MAX_X-1) && (y + dir_y).between?(0, MAX_Y-1)}.compact
+    return $dirs.map{
+        |dir_x, dir_y| seats[y + dir_y][x + dir_x] if (x + dir_x).between?(0, MAX_X-1) && (y + dir_y).between?(0, MAX_Y-1)
+    }.compact
 end
 
 
@@ -55,30 +57,11 @@ end
 
 
 def apply_rules(seats, policy)
-    new_seats = []
-    changed = false
+    new_seats = seats.map.with_index{ |row, y| row.map.with_index{ |seat, x| 
+        (seat == FLOOR) ? FLOOR : apply_rules_to_seat(method(policy).call(seats, x, y), seat)
+    }}
 
-    seats.each_with_index do |seat_row, y|
-        new_seat_row = []
-
-        seat_row.each_with_index do |seat, x|
-            new_seat = seat
-
-            unless seat == FLOOR
-                neighbors = method(policy).call(seats, x, y)
-                
-                new_seat = apply_rules_to_seat(neighbors, seat)
-
-                changed = true unless new_seat == seat
-            end
-
-            new_seat_row.push(new_seat)
-        end
-
-        new_seats.push(new_seat_row)
-    end
-
-    return new_seats, changed
+    return new_seats, new_seats != seats
 end
 
 

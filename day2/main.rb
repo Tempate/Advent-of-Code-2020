@@ -3,30 +3,22 @@ lines = file.readlines.map(&:chomp)
 
 
 def policy1(pos1, pos2, letter, string)
-    count = string.count(letter)
-    return count >= pos1 && count <= pos2
+    (pos1..pos2).cover? string.count(letter)
 end
 
 
 def policy2(pos1, pos2, letter, string)
-    return (string[pos1-1] == letter) ^ (string[pos2-1] == letter)
+    (string[pos1-1] == letter) ^ (string[pos2-1] == letter)
 end
 
 
 def valid_passwords(lines, policy)
     pattern = Regexp.compile(/^(?<pos1>\d+)-(?<pos2>\d+) (?<letter>[a-z]{1}): (?<string>[a-z]+)$/)
-    
-    valid = 0
 
-    lines.each do |line|
-        content = pattern.match(line)
-
-        if method(policy).call(content[1].to_i, content[2].to_i, content[3], content[4])
-            valid += 1
-        end
-    end
-
-    return valid
+    lines.select{ |line|
+        content = pattern.match(line);
+        method(policy).call(content[1].to_i, content[2].to_i, content[3], content[4])
+    }.length()
 end
 
 

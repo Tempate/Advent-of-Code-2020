@@ -19,7 +19,7 @@ end
 
 
 def run_game2(decks)
-    history = Set.new
+    history = SortedSet.new
 
     until stop_playing(decks)
         # The first player wins when reaching an already played position
@@ -37,7 +37,7 @@ def run_game2(decks)
         if play_subgame(decks, cards)
             subdecks = decks.map.with_index{ |deck, i| deck[..cards[i]-1] }
 
-            if run_game2(subdecks).empty?
+            if run_game2(subdecks)[1].empty?
                 decks[0].push(cards[0], cards[1])
             else
                 decks[1].push(cards[1], cards[0])
@@ -53,7 +53,7 @@ end
 
 
 def highest_wins(decks, cards)
-    if (cards[0] > cards[1])
+    if cards[0] > cards[1]
         decks[0].push(cards[0], cards[1])
     else
         decks[1].push(cards[1], cards[0])
@@ -67,7 +67,7 @@ end
 
 
 def play_subgame(decks, cards)
-    decks.each_with_index.all? { |deck, i| cards[i] <= deck.length }
+    decks.zip(cards).all? { |deck, card| card <= deck.length }
 end
 
 

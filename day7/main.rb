@@ -32,37 +32,21 @@ end
 
 
 def bag_contains_package(bag, package)
-    $bags[bag].each do |sub_bag|
-        if sub_bag["type"] == package || bag_contains_package(sub_bag["type"], package)
-            return true
-        end
-    end
-
-    return false
+    $bags[bag].any? { |sub_bag|
+        sub_bag["type"] == package || bag_contains_package(sub_bag["type"], package)
+    }
 end
 
 
 def count_bags_that_contain_package(package)
-    count = 0
-
-    $bags.keys().each do |bag|
-        if bag_contains_package(bag, package)
-            count += 1
-        end
-    end
-
-    return count
+    $bags.keys().select { |bag| bag_contains_package(bag, package) }.length()
 end
 
 
 def count_packages_for_bag(bag)
-    count = 0
-    
-    $bags[bag].each do |bag_info|
-        count += bag_info["amount"] * (count_packages_for_bag(bag_info["type"]) + 1)
-    end
-
-    return count
+    $bags[bag].sum { |bag_info|
+        bag_info["amount"] * (count_packages_for_bag(bag_info["type"]) + 1)
+    }
 end
 
 

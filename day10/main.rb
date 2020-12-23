@@ -8,7 +8,7 @@ def count_jumps()
     count = [0, 0, 0]
 
     $adapters[0..-2].each_with_index do |adapter, index|
-        jump = (adapter - $adapters[index + 1]).abs
+        jump = $adapters[index + 1] - adapter
         count[jump - 1] += 1
     end
 
@@ -20,9 +20,7 @@ end
 def count_arrangements(adapters)
     len = adapters.length()
 
-    if 0 <= len && len <= 2
-        return [1]
-    end
+    return [1] if 0 <= len && len <= 2
 
     arrangements = count_arrangements(adapters[1..-1])
 

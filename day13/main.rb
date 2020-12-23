@@ -5,8 +5,8 @@ $input = file.readlines.map(&:chomp)
 def parse(input)
     arrival = input[0].to_i
 
-    schedules = input[1].split(',').map.with_index{ |id, index|
-        {:id => id.to_i, :key => (id.to_i - index) % id.to_i} unless id == 'x'
+    schedules = input[1].split(',').map(&:to_i).map.with_index{ |id, index|
+        {:id => id, :key => (id - index) % id} unless id == 0 
     }.compact
 
     return arrival, schedules
@@ -25,7 +25,7 @@ end
 def find_arrival_for_continuous_buses(schedules)
     max_index = schedules.length() - 1
 
-    # We start by multiplying all the schedule ids
+    # We start by multiplying the schedules' ids
     # It's the amount of time it takes for the schedule sequence to repeat
     product = schedules.map{ |schedule| schedule[:id] }.inject(:*)
 
